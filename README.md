@@ -1,96 +1,40 @@
-# College-ERP
-A college management system built using Django framework. It is designed for interactions between students and teachers. Features include attendance, marks and time table.
+# Assignment Tracker CI/CD Lab
 
-## Installation
+A minimal Express + SQLite web application that stores assignment telemetry and showcases how Jenkins orchestrates the lifecycle from GitHub to AWS EC2.
 
-Python and Django need to be installed
+## Local development
 
-```bash
-pip install django
-```
+1. Install Node.js (>=18) and clone this repository.
+2. Run `npm ci` to install dependencies.
+3. Seed the database with `npm run migrate` (creates `data/tracker.db`).
+4. Start the app with `npm start` and visit [http://localhost:4000](http://localhost:4000).
+5. Use the web form or `POST /api/assignments` to add new records. All data is persisted in `data/tracker.db`.
 
-## Usage
+## Testing
 
-Go to the College-ERP folder and run
+- `npm run test` executes a quick smoke test that writes to SQLite and validates the round-trip.
 
-```bash
-python manage.py runserver
-```
+## Jenkins pipeline overview
 
-Then go to the browser and enter the url **http://127.0.0.1:8000/**
+The pipeline defined in `Jenkinsfile` covers the required stages:
 
+1. **Fetch:** clones the GitHub repository.
+2. **Build:** installs Node dependencies (`npm ci`).
+3. **Test:** runs the `npm run test` smoke test.
+4. **Deploy:** uses `./scripts/deploy.sh` to bundle, transfer, and install code on an AWS EC2 host.
+5. **Operate:** restarts the service remotely via `./scripts/operate.sh` using `nohup`.
+6. **Monitor:** curls the EC2-hosted `/health` endpoint and verifies the SQLite file with `./scripts/monitor.sh`.
 
-## Login
+Set the following environment variables inside Jenkins (or export them on the controller) before running the pipeline:
 
-The login page is common for students and teachers.  
-The username is their name and password for everyone is 'project123'.  
+- `SSH_KEY_PATH`: path to the private key that can log into your EC2 instance.
+- `DEPLOY_HOST`: EC2 public DNS or IP address.
+- `DEPLOY_USER`: Linux user on the EC2 host (often `ec2-user` or `ubuntu`).
+- `DEPLOY_PATH`: folder where the application should be deployed (defaults to `/home/ec2-user/ci-lab-app`).
+- `APP_URL`: `http://<ec2-host>:4000`, so the monitor step can query `/health`.
 
-Example usernames:  
-student- 'samarth'  
-teacher- 'trisila'  
+See `docs/ci_cd_guide.md` for step-by-step notes on provisioning Jenkins on AWS and wiring up the pipeline.
 
-You can access the django admin page at **http://127.0.0.1:8000/admin** and login with username 'admin' and the above password.
+## Delivery expectations
 
-Also a new admin user can be created using
-
-```bash
-python manage.py createsuperuser
-```
-
-## Users
-
-New students and teachers can be added through the admin page. A new user needs to be created for each. 
-
-The admin page is used to modify all tables such as Students, Teachers, Departments, Courses, Classes etc.
-
-**For more details regarding the system and features please refer the reports included.**
-
-## Update (29/11/2020)
-
-Added method to reset attendance time range in Django Admin page.
-
-![alt_text](https://i.imgur.com/0xOWmUZ.png)
-
-This is present in Django Admin -> Attendance (http://127.0.0.1:8000/admin/info/attendanceclass/).  
-Start Date: Start Date of Attendance period  
-End Date: End Date of Attendance period
-
-This will delete all present attendance data and create new attendance objects for the given time range. 
-
-## Screenshots
-
-### Teacher Page
-
-![alt text](https://imgur.com/pMAoEbG.png)
-
-![alt text](https://imgur.com/ZiQ3RRA.png)
-
-![alt text](https://imgur.com/i025CJW.png)
-
-![alt text](https://imgur.com/HQlLYmC.png)
-
-![alt text](https://imgur.com/j6RyBmU.png)
-
-![alt text](https://imgur.com/xIKEMvQ.png)
-
-![alt text](https://imgur.com/4Rl7Fpv.png)
-
-### Student Page
-
-![alt text](https://imgur.com/isL9cjz.png)
-
-![alt text](https://imgur.com/5pzl7m3.png)
-
-![alt text](https://imgur.com/7zWhHZx.png)
-
-![alt text](https://imgur.com/fu7gxk8.png)
-
-![alt text](https://imgur.com/NZqU268.png)
-
-### Admin Page
-
-![alt text](https://imgur.com/sDvDc9N.png)
-
-![alt text](https://imgur.com/tMKWx6f.png)
-
-![alt text](https://imgur.com/PvCsNeB.png)
+Push your code to a GitHub repository so your Jenkins job can clone it. After you make changes, run the pipeline again to validate the fetch, deploy, operate, and monitor stages described in your lab instructions.

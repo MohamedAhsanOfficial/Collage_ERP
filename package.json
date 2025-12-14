@@ -1,0 +1,22 @@
+{
+  "name": "ci-lab-webapp",
+  "version": "0.1.0",
+  "description": "Assignment tracker with a SQLite backend for Jenkins CI/CD lab",
+  "main": "src/app.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "npx nodemon src/app.js",
+    "migrate": "node src/db/setup.js",
+    "test": "node src/tests/run-tests.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.6",
+    "sqlite": "^4.1.0"
+  }
+}

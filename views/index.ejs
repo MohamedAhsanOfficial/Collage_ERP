@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assignment Tracker Lab</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <p class="eyebrow">CI/CD Lab</p>
+        <h1>Assignment tracker</h1>
+        <p class="lede">Capture work items and rely on Jenkins to pull, build, deploy, and monitor them.</p>
+      </header>
+
+      <% if (error) { %>
+        <p class="flash danger"><%= error %></p>
+      <% } else if (message) { %>
+        <p class="flash success"><%= message %></p>
+      <% } %>
+
+      <section class="card">
+        <h2>Log a new assignment</h2>
+        <form method="post" action="/assignments">
+          <label>
+            Title
+            <input type="text" name="title" placeholder="Project demo" required />
+          </label>
+          <label>
+            Description
+            <textarea name="description" rows="3" placeholder="Example: Build a Terraform plan"></textarea>
+          </label>
+          <label>
+            Due date
+            <input type="date" name="dueDate" required />
+          </label>
+          <button type="submit">Save assignment</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="card-heading">
+          <h2>Upcoming assignments</h2>
+          <span class="meta"><%= assignments.length %> stored</span>
+        </div>
+        <% if (assignments.length === 0) { %>
+          <p class="muted">No assignments yet. Add one to bootstrap the pipeline.</p>
+        <% } else { %>
+          <div class="grid">
+            <% assignments.forEach((assignment) => { %>
+              <article>
+                <h3><%= assignment.title %></h3>
+                <p class="due">Due <%= assignment.dueDate %></p>
+                <p><%= assignment.description || 'No description provided.' %></p>
+              </article>
+            <% }); %>
+          </div>
+        <% } %>
+      </section>
+    </div>
+  </body>
+</html>
