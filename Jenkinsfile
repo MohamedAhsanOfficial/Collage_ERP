@@ -51,6 +51,8 @@ pipeline {
                     sh 'kubectl apply -f k8s/pvc.yaml'
                     sh 'kubectl apply -f k8s/deployment.yaml'
                     sh 'kubectl apply -f k8s/service.yaml'
+                    // Apply Monitoring
+                    sh 'kubectl apply -f monitoring/'
                     
                     // Restart deployment to pick up new image (since tag is 'latest')
                     sh "kubectl rollout restart deployment/collage-erp-deployment"
