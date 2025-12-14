@@ -17,9 +17,12 @@ spec:
         image: mohamedahsan00/collage-erp:latest
         ports:
         - containerPort: 3000
+        env:
+        - name: DB_PATH
+          value: "/usr/src/app/data/collage.db"
         volumeMounts:
         - name: db-storage
-          mountPath: /usr/src/app # Mapping the whole app dir where db file lives
+          mountPath: /usr/src/app/data
       volumes:
       - name: db-storage
         persistentVolumeClaim:
