@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collage-erp-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collage-erp
+  template:
+    metadata:
+      labels:
+        app: collage-erp
+    spec:
+      containers:
+      - name: collage-erp
+        image: your-dockerhub-username/collage-erp:latest
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: db-storage
+          mountPath: /usr/src/app # Mapping the whole app dir where db file lives
+      volumes:
+      - name: db-storage
+        persistentVolumeClaim:
+          claimName: collage-erp-pvc

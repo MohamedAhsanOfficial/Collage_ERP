@@ -1,48 +1,56 @@
 pipeline {
-  agent any
-  environment {
-    APP_URL = 'http://127.0.0.1:4000'
-    DEPLOY_PATH = '/home/ec2-user/ci-lab-app'
-  }
-  options {
-    ansiColor('xterm')
-  }
-  stages {
-    stage('Fetch') {
-      steps {
-        echo 'Pulling latest artifacts from the repository'
-        checkout scm
-      }
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') // Make sure to create this in Jenkins
+        DOCKER_IMAGE = "your-dockerhub-username/collage-erp"
+        KUBECONFIG_CREDENTIALS = credentials('kubeconfig-credentials') // ID of Secret File with kubeconfig
     }
-    stage('Build') {
-      steps {
-        sh 'npm ci'
-      }
+
+    stages {
+        stage('Code Fetch') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your-username/Collage_ERP.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+                }
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('', 'dockerhub-credentials') {
+                        dockerImage.push()
+                        dockerImage.push('latest')
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
+                    sh 'kubectl apply -f k8s/pvc.yaml'
+                    sh 'kubectl apply -f k8s/deployment.yaml'
+                    sh 'kubectl apply -f k8s/service.yaml'
+                    
+                    // Force rollout restart to pick up new image if using latest tag, 
+                    // or better, update the image tag in deployment.yaml dynamically using sed
+                    sh "kubectl set image deployment/collage-erp-deployment collage-erp=${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                }
+            }
+        }
     }
-    stage('Test') {
-      steps {
-        sh 'npm run test'
-      }
+    
+    post {
+        always {
+            cleanWs()
+        }
     }
-    stage('Deploy') {
-      steps {
-        sh './scripts/deploy.sh'
-      }
-    }
-    stage('Operate') {
-      steps {
-        sh './scripts/operate.sh'
-      }
-    }
-    stage('Monitor') {
-      steps {
-        sh './scripts/monitor.sh'
-      }
-    }
-  }
-  post {
-    always {
-      echo 'Pipeline finished'
-    }
-  }
 }
