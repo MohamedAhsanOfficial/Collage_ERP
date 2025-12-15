@@ -41,8 +41,3 @@ This verifies the Dockerfile and container environment.
     docker rmi collage-erp-test
     ```
 
-## 3. Kubernetes Dry-Run (Optional)
-If you have `kubectl` installed and want to check syntax:
-```powershell
-kubectl apply -f k8s/ -n default --dry-run=client
-```
